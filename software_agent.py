@@ -1,168 +1,179 @@
-#  SOFTWARE AGENT — Built with LangGraph + OpenAI GPT-4o
+# software_agent.py
+from typing import Literal
 from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import SystemMessage
+from langchain_community.tools.tavily_search import TavilySearchResults
 from langgraph.graph import StateGraph, MessagesState, START, END
-from config import *
+from langgraph.prebuilt import ToolNode
 
-llm = AzureChatOpenAI(
-    azure_endpoint=AZURE_OPENAI_CM_ENDPOINT,
-    api_key=AZURE_OPENAI_CM_API_KEY, 
-    azure_deployment= AZURE_OPENAI_CM_DEPLOYMENT_NAME,  # or your deployed chat model
-    openai_api_version=AZURE_OPENAI_CM_API_VERSION ,
-    temperature=TEMPERATURE 
+from config import *
+#  TAVILY SEARCH TOOL
+tavily_tool = TavilySearchResults(
+    tavily_api_key=TAVILY_API_KEY,
+    max_results=3,
+    search_depth="advanced",
+    include_answer=True,
+    include_raw_content=False,
+    name="tavily_software_search",
+    description=(
+        "Search the internet for real-time software and technology information. "
+        "Use this for questions about latest framework versions, recent library updates, "
+        "new language features, trending tools, current best practices, "
+        "recent tech news, newest AI models, and any software topic that may have "
+        "changed or been released recently."
+    ),
 )
 
-# SYSTEM PROMPT
-# Defines the full scope of the Software Agent.
+tools = [tavily_tool]
 
-SYSTEM_PROMPT = SystemMessage(content="""You are an expert Software Agent — a senior-level software engineer and architect 
-with deep, up-to-date knowledge across the entire software development landscape.
+
+#  LLM
+llm = AzureChatOpenAI(
+    azure_endpoint=AZURE_OPENAI_CM_ENDPOINT,
+    api_key= AZURE_OPENAI_CM_API_KEY,
+    azure_deployment=AZURE_OPENAI_CM_DEPLOYMENT_NAME,
+    openai_api_version=AZURE_OPENAI_CM_API_VERSION,
+    temperature=TEMPERATURE,
+)
+
+# Binding tools tells GPT-4: "you CAN call these tools if needed"
+llm_with_tools = llm.bind_tools(tools)
+
+
+# SYSTEM PROMPT
+
+SYSTEM_PROMPT = SystemMessage(content="""You are an expert Software & Technology Agent — a senior software engineer 
+with deep knowledge across the entire software development landscape.
+
+
+WHEN TO USE TAVILY SEARCH TOOL:
+
+ALWAYS call tavily_software_search when the question involves ANY of these:
+  - Words: "trending", "latest", "newest", "recent", "current", "top", "best in"
+  - Words: "just released", "new version", "updated", "what's new"
+  - Any year mentioned: 2024, 2025, 2026 or beyond
+  - AI/ML trends, LLM updates, new model releases
+  - New frameworks, libraries, tools released recently
+  - Current best practices that change frequently
+  - "what are the trends", "what is popular now", "what tools are used"
+  - Technology news or recent developments
+
+YOU MUST SEARCH — do NOT answer from memory for these — your training data is outdated.
+Always prefer fresh Tavily results for anything trend-related.
+
+ANSWER DIRECTLY from memory (no search) ONLY for:
+  - Core programming concepts: loops, functions, OOP, recursion
+  - Established patterns: REST basics, SQL basics, design patterns
+  - How well-known frameworks fundamentally work (not version-specific)
+  - Debugging help or code review of user-provided code
+
 
 YOUR KNOWLEDGE COVERS:
 
-PROGRAMMING LANGUAGES:
-  - Python, JavaScript, TypeScript, Java, C, C++, C#
-  - Go, Rust, Kotlin, Swift, Dart, Ruby, PHP, Scala
-  - R, MATLAB, SQL, Bash/Shell scripting
-
-FRONTEND:
-  - React, Next.js, Vue.js, Nuxt, Angular, Svelte
-  - HTML5, CSS3, Tailwind CSS, Bootstrap
-  - State management: Redux, Zustand, Pinia
-  - Build tools: Vite, Webpack, esbuild
-
-BACKEND:
-  - Python: FastAPI, Django, Flask, SQLAlchemy
-  - Node.js: Express, NestJS, Fastify
-  - Java: Spring Boot, Micronaut
-  - Go: Gin, Fiber
-  - Ruby on Rails, Laravel (PHP), ASP.NET Core
-
-DATABASES:
-  - Relational: PostgreSQL, MySQL, SQLite, SQL Server
-  - NoSQL: MongoDB, Redis, Cassandra, DynamoDB
-  - Vector DBs: Pinecone, Weaviate, Chroma, FAISS
-  - ORMs: SQLAlchemy, Prisma, TypeORM, Hibernate
-
-CLOUD & DEVOPS:
-  - AWS (EC2, S3, Lambda, RDS, ECS, EKS)
-  - GCP (Cloud Run, BigQuery, GKE)
-  - Azure (App Service, AKS, Cosmos DB)
-  - Docker, Kubernetes, Helm
-  - CI/CD: GitHub Actions, Jenkins, GitLab CI
-  - Terraform, Ansible, Pulumi
-
-AI / ML / LLM:
-  - LangChain, LangGraph, LlamaIndex
-  - OpenAI API, Anthropic Claude, Google Gemini
-  - HuggingFace, Transformers, Diffusers
-  - PyTorch, TensorFlow, Keras, Scikit-learn
-  - RAG, fine-tuning, embeddings, vector search
-  - MLflow, Weights & Biases, Vertex AI
-
-ARCHITECTURE & DESIGN:
-  - Design patterns: Singleton, Factory, Observer, Strategy, etc.
-  - Microservices, Monolith, Serverless, Event-driven
-  - REST, GraphQL, gRPC, WebSockets
-  - Domain-Driven Design (DDD), CQRS, Event Sourcing
-  - Clean Architecture, Hexagonal Architecture
-
-TESTING:
-  - Unit, Integration, E2E testing
-  - pytest, Jest, Vitest, Mocha, JUnit
-  - Playwright, Cypress, Selenium
-
-SECURITY:
-  - OWASP Top 10, SQL injection, XSS, CSRF
-  - JWT, OAuth2, OpenID Connect
-  - SSL/TLS, encryption, hashing
-
-LATEST TRENDS (2024-2025):
-  - AI-assisted coding (GitHub Copilot, Cursor, Devin)
-  - LLM Agents and multi-agent systems
-  - Edge computing and serverless evolution
-  - WebAssembly (WASM) adoption
-  - Bun and Deno as Node.js alternatives
-  - Rust growing in systems and web
-  - Platform engineering and internal developer platforms
-  - OpenTelemetry for observability
+Languages     : Python, JavaScript, TypeScript, Java, C/C++, Go, Rust, Kotlin, Swift
+Frontend      : React, Next.js, Vue, Angular, Svelte, Tailwind CSS
+Backend       : FastAPI, Django, Flask, Express, NestJS, Spring Boot
+Databases     : PostgreSQL, MongoDB, Redis, FAISS, Pinecone, DynamoDB
+Cloud & DevOps: AWS, GCP, Azure, Docker, Kubernetes, GitHub Actions, Terraform
+AI / ML       : LangChain, LangGraph, OpenAI API, HuggingFace, PyTorch, TensorFlow
+Architecture  : Microservices, Serverless, Event-driven, DDD, CQRS, Clean Architecture
+Security      : JWT, OAuth2, OWASP, SSL/TLS
 
 
 HOW YOU RESPOND:
 
-1. Give accurate, practical, production-level answers
-2. Always include working code examples with comments
-3. Mention multiple approaches when relevant + recommend the best one
-4. Explain trade-offs (pros/cons) for architecture decisions
-5. For code bugs/errors: explain the root cause, then fix it
-6. Keep code clean, readable, and following best practices
-7. Mention version-specific differences if they matter
-8. For trending topics: give honest, balanced perspective
+1. For ALL trending/year-based questions → ALWAYS call Tavily first, then combine with your knowledge
+2. For general concepts → answer directly with clear explanation
+3. Always include working code examples with comments when relevant
+4. Mention pros/cons for architecture decisions
+5. When using Tavily results → clearly present the real-time findings
 """)
-#   NODE
-#  Flow: START -> software_node -> END
+
+
+#TOOL NODE
+
+tool_node = ToolNode(tools)
+
+
+#  SHOULD CONTINUE
+
+def should_continue(state: MessagesState) -> Literal["tools", "__end__"]:
+    last_message = state["messages"][-1]
+    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+        return "tools"    # GPT-4 wants to search Tavily
+    return END            # GPT-4 gave a final answer
+
+
+# SOFTWARE NODE
 
 def software_node(state: MessagesState) -> dict:
-    messages = state["messages"]
+    messages  = state["messages"]
+    response  = llm_with_tools.invoke([SYSTEM_PROMPT] + messages)
 
-    # Prepend system prompt so GPT-4o knows its role on every call
-    response = llm.invoke([SYSTEM_PROMPT] + messages)
+    # ── ADD THIS to see if tool was called ──
+    if hasattr(response, "tool_calls") and response.tool_calls:
+        print(f"[Software Agent] ✅ Tavily SEARCH triggered!")
+        for tc in response.tool_calls:
+            print(f"[Software Agent] 🔍 Search query: {tc['args'].get('query', '')}")
+    else:
+        print(f"[Software Agent] ✅ Answering from LLM knowledge (no search)")
 
     return {"messages": [response]}
 
-#  BUILD THE GRAPH
+#  BUILD GRAPH
 
 graph_builder = StateGraph(MessagesState)
 
-# Add the single node
 graph_builder.add_node("software_node", software_node)
+graph_builder.add_node("tools",         tool_node)
 
-# Add edges: START -> software_node -> END
 graph_builder.add_edge(START, "software_node")
-graph_builder.add_edge("software_node", END)
 
-# Compile into a runnable graph
+graph_builder.add_conditional_edges(
+    "software_node",
+    should_continue,
+    {
+        "tools": "tools",   # search needed → go to tool_node
+        END:     END,       # final answer  → stop
+    }
+)
+
+# After tool_node runs → loop back to software_node
+# GPT-4 reads search results and writes final answer
+graph_builder.add_edge("tools", "software_node")
+
 software_graph = graph_builder.compile()
 
-png_data = software_graph.get_graph().draw_mermaid_png()
-with open('software_graph.png', 'wb') as f:
-    f.write(png_data)
 
-#  STEP 6 — PUBLIC FUNCTION
+# PUBLIC FUNCTION
 
 def run_software_agent(question: str) -> str:
-    print("\n  Software Agent activated...")
+
+    print(f"\n[Software Agent] Processing: {question}")
 
     result = software_graph.invoke(
         {"messages": [{"role": "user", "content": question}]}
     )
 
-    # Last message in state = GPT-4o's final answer
     final_answer = result["messages"][-1].content
     return final_answer
 
 
-# to Test  
+#  TEST — python software_agent.py
+
 if __name__ == "__main__":
-    print("=" * 60)
-    print("       Software Agent  LangGraph Test")
-    print("=" * 60)
-    print("Ask about: languages, frameworks, architecture,")
-    print("DevOps, AI/ML, trends, code help, debugging...")
-    print("=" * 60)
+    print("=" * 55)
+    print("  Software Agent — LLM + Tavily Search")
+    print("=" * 55)
+    print("Try trending: 'latest Python version features'")
+    print("Try general : 'how does async await work'")
+    print("=" * 55)
 
     while True:
         question = input("\nAsk a software question (or 'quit'): ").strip()
-
         if question.lower() == "quit":
-            print("Exiting Software Agent.")
             break
-
         if not question:
             continue
-
         answer = run_software_agent(question)
-        print("\nAnswer:")
-        print("-" * 60)
-        print(answer)
-        print("=" * 60)
+        print(f"\nAnswer:\n{'-' * 55}\n{answer}\n{'=' * 55}")
