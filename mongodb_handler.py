@@ -35,20 +35,10 @@ async_collection = async_db["chat_history"]
 print(f"MongoDB connected: {MONGODB_DB_NAME}")
 
 
-# ─────────────────────────────────────────────────────
-#  GENERATE SESSION ID
-#  Creates a unique 8-character ID for each chat session
-#  Called once when a new session starts in Fast_api.py
-# ─────────────────────────────────────────────────────
 def generate_session_id() -> str:
     return str(uuid.uuid4())[:8]
 
 
-# ═════════════════════════════════════════════════════
-#  SYNC FUNCTIONS
-#  Used by: orchestrator.py → synthesizer_node()
-#  Reason : LangGraph nodes run in sync context
-# ═════════════════════════════════════════════════════
 
 def save_conversation(session_id: str, question: str, answer: str, agents_used: list):
     """
@@ -90,13 +80,6 @@ def get_all_conversations() -> list:
     return list(records)
 
 
-# ═════════════════════════════════════════════════════
-#  ASYNC FUNCTIONS
-#  Used by: Fast_api.py endpoints
-#  Reason : FastAPI is async — motor async driver fits perfectly
-#           No need for run_in_threadpool when using these
-# ═════════════════════════════════════════════════════
-
 async def async_get_session_history(session_id: str) -> list:
     """
     Fetch all Q&A pairs for a session (async).
@@ -119,9 +102,6 @@ async def async_get_all_conversations() -> list:
     return records
 
 
-# ─────────────────────────────────────────────────────
-#  TEST — python mongodb_handler.py
-# ─────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("Testing MongoDB connection...")
 
