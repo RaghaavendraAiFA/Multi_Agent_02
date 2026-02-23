@@ -1,0 +1,42 @@
+import os
+from dotenv import load_dotenv 
+load_dotenv() 
+
+
+PDF_PATH = r"C:\\Users\\AIFA USER 285\\Multi_Agent\\Multi_Agent_02\\indian-penal-code.pdf"
+VECTOR_DB_PATH = r"C:\\Users\\AIFA USER 285\\Multi_Agent\\Multi_Agent_02\\Indianpenalcode"
+
+# AZURE_EMBEDDING_ENDPOINT = "https://sasa-openai-dev.openai.azure.com/"
+# AZURE_EMBEDDING_API_KEY = "FRRDTgtrZIF55xCgMIdaDSox0WeSDajSlhUgIpwFpGtx6BPzmbV4JQQJ99BEACYeBjFXJ3w3AAABACOGgBs8"
+# AZURE_EMBEDDING_DEPLOYMENT = "text-embedding-3-large"
+# AZURE_EMBEDDING_MODEL = "text-embedding-3-large"
+# AZURE_EMBEDDING_API_VERSION = "2025-01-01-preview"
+
+# AZURE_CHAT_ENDPOINT = "https://cerebro-al-qa.openai.azure.com/"
+# AZURE_CHAT_API_KEY = "7594755880f24244b3b161a1e6f56355"
+# AZURE_CHAT_DEPLOYMENT = "gpt-4o"
+# AZURE_CHAT_API_VERSION = "2024-05-01-preview"
+
+TAVILY_API_KEY  = "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"
+
+
+
+AZURE_OPENAI_CM_API_KEY = os.getenv("AZURE_OPENAI_CM_API_KEY")
+AZURE_OPENAI_CM_ENDPOINT = os.getenv("AZURE_OPENAI_CM_ENDPOINT")
+AZURE_OPENAI_CM_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_CM_DEPLOYMENT_NAME")
+AZURE_OPENAI_CM_API_VERSION = os.getenv("AZURE_OPENAI_CM_API_VERSION")
+MODEL_TEMPERATURE = 0
+ 
+AZURE_OPENAI_EMB_MODEL_NAME= os.getenv("AZURE_OPENAI_EMB_MODEL_NAME")
+AZURE_OPENAI_EMB_DEPLOYMENT_NAME= os.getenv("AZURE_OPENAI_EMB_DEPLOYMENT_NAME")
+AZURE_OPENAI_EMB_ENDPOINT= os.getenv("AZURE_OPENAI_EMB_ENDPOINT")
+AZURE_OPENAI_EMB_API_KEY= os.getenv("AZURE_OPENAI_EMB_API_KEY")
+AZURE_OPENAI_EMB_API_VERSION= os.getenv("AZURE_OPENAI_EMB_API_VERSION")
+
+CHUNK_SIZE = 512
+CHUNK_OVERLAP = 100
+TOP_K = 4
+TEMPERATURE = 0.3
+
+MONGODB_URI = "mongodb+srv://raghuragoud_db_user:opXYXokCsJfmTo6N@cluster0.jnbea2t.mongodb.net/?appName=Cluster0"
+MONGODB_DB_NAME = "multi_agent_system"
