@@ -1,5 +1,4 @@
 #  HEALTHCARE AGENT
-
 from typing import Literal
 from langchain_tavily import TavilySearch
 from langchain_core.messages import SystemMessage
@@ -35,9 +34,7 @@ llm = AzureChatOpenAI(
 )
 
 llm_with_tools = llm.bind_tools(tools)
-# ─────────────────────────────────────────────
 # STEP 4: System Prompt for the Healthcare Agent
-# ─────────────────────────────────────────────
 SYSTEM_PROMPT = SystemMessage(content="""You are a professional Healthcare Agent with access to real-time medical search.
 
 Your responsibilities:
@@ -104,7 +101,6 @@ graph_builder.add_edge("tools", "healthcare_node")
 # Compile the graph into a runnable agent
 healthcare_graph = graph_builder.compile()
 
-
 png_data = healthcare_graph.get_graph().draw_mermaid_png()
 with open('healthcare_graph.png', 'wb') as f:
     f.write(png_data)  
@@ -118,29 +114,6 @@ def run_healthcare_agent(question: str) -> str:
     result = healthcare_graph.invoke(
         {"messages": [{"role": "user", "content": question}]}
     )
-
     # Last message in state = final AI answer
     final_answer = result["messages"][-1].content
     return final_answer
-
-
-# TEST 
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("       Healthcare Agent  LangGraph Test")
-    print("=" * 60)
-
-    while True:
-        question = input("\nAsk a health question (or 'quit'): ").strip()
-        if question.lower() == "quit":
-            print("Exiting Healthcare Agent.")
-            break
-        if not question:
-            continue
-
-        answer = run_healthcare_agent(question)
-        print("\nAnswer:")
-        print("-" * 60)
-        print(answer)
-        print("=" * 60)

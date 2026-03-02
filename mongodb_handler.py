@@ -4,7 +4,6 @@ from motor.motor_asyncio import AsyncIOMotorClient   # async MongoDB driver
 from datetime import datetime
 import uuid
 import certifi
-
 from config import MONGODB_URI, MONGODB_DB_NAME
 
 sync_client = MongoClient(
@@ -12,9 +11,9 @@ sync_client = MongoClient(
     tls=True,
     tlsCAFile=certifi.where(),
     tlsAllowInvalidCertificates=True,
-    serverSelectionTimeoutMS=30000,
-    connectTimeoutMS=20000,
-    socketTimeoutMS=20000,
+    serverSelectionTimeoutMS=50000,
+    connectTimeoutMS=50000,
+    socketTimeoutMS=50000,
 )
 sync_db         = sync_client[MONGODB_DB_NAME]
 sync_collection = sync_db["chat_history"]
@@ -41,10 +40,7 @@ def generate_session_id() -> str:
 
 
 def save_conversation(session_id: str, question: str, answer: str, agents_used: list):
-    """
-    Save one Q&A pair to MongoDB (sync).
-    Called by synthesizer_node in orchestrator.py after every answer.
-    """
+
     document = {
         "session_id"  : session_id,
         "question"    : question,
@@ -57,10 +53,7 @@ def save_conversation(session_id: str, question: str, answer: str, agents_used: 
 
 
 def get_session_history(session_id: str) -> list:
-    """
-    Fetch all Q&A pairs for a session (sync).
-    Returns records sorted oldest → newest.
-    """
+
     records = sync_collection.find(
         {"session_id": session_id},
         {"_id": 0}                   # exclude MongoDB internal _id field
@@ -69,10 +62,7 @@ def get_session_history(session_id: str) -> list:
 
 
 def get_all_conversations() -> list:
-    """
-    Fetch all conversations across all sessions (sync).
-    Returns records sorted newest → oldest.
-    """
+
     records = sync_collection.find(
         {},
         {"_id": 0}
@@ -81,10 +71,7 @@ def get_all_conversations() -> list:
 
 
 async def async_get_session_history(session_id: str) -> list:
-    """
-    Fetch all Q&A pairs for a session (async).
-    Used directly in FastAPI GET /history endpoint.
-    """
+
     cursor  = async_collection.find(
         {"session_id": session_id},
         {"_id": 0}
