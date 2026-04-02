@@ -186,23 +186,6 @@ GET /health
 
 ---
 
-## 🔮 Future Improvements
-
-* Add **Redis (short-term memory)**
-* Add **PostgreSQL (long-term memory)**
-* Improve **agent tool selection**
-* Add **real-time streaming logs**
-* UI dashboard for visualization
-
----
-
-## 👨‍💻 Author
-
-**Raghu**
-AI Engineer | GenAI | RAG | Knowledge Graphs
-
----
-
 ## ⭐ Summary
 
 STAR AI POC demonstrates how to build a **production-style AI system** that combines:
