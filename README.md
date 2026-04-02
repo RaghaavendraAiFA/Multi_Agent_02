@@ -1,4 +1,4 @@
-# ⭐ STAR AI POC
+# STAR AI POC
 
 ## 🚀 Overview
 
@@ -41,15 +41,6 @@ It then uses an **AI agent powered by Azure OpenAI** to analyze logs, correlate 
 
 ---
 
-## 🏗️ Architecture
-
-![Image](https://docs.cloud.google.com/static/architecture/images/gen-ai-graphrag-spanner.svg)
-
-![Image](https://blog.langchain.com/content/images/2024/01/simple_multi_agent_diagram--1-.png)
-
-![Image](https://cdn.prod.website-files.com/65d609edcc331dd0e4eb519b/69331cfd939bbc6511b8ee10_995ec127.png)
-
-![Image](https://www.tenupsoft.com/images/blogs/rag-workflow-using-vector-and-graph-databases.webp)
 
 ### Flow:
 
@@ -133,8 +124,9 @@ NEO4J_PASSWORD=
 ### 3. Run with Docker
 
 ```bash
-docker build -t star-ai .
-docker run -p 8000:8000 star-ai
+docker compose build --no-cache
+docker compose up -d 
+
 ```
 
 ### 4. Run Locally
@@ -157,7 +149,7 @@ POST /auth/login
 ### 📊 Vector DB
 
 ```
-POST /vdb/insert
+POST /vdb/insert_vectors
 ```
 
 ### 🧠 Knowledge Graph
